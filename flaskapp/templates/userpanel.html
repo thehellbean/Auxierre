@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}
+	{{ _('Auxierre') }} - {{ _('User settings panel')}}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+	{% with user=get_user() %}
+		<div class="row">
+			<h3>Hello, {{ user.username }}</h3>
+			<div class="col-md-4">
+				<p>These are the songs you've uploaded: </p>
+				{% for song in user.songs %}
+				<p><a href="{{ url_for('visualise') + '?s=' + song.id|string}}"> {{ song.title }}</a>   <a href="/visualise/{{ song.id }}/edit">Edit</a></p>
+				{% endfor %}
+			</div>
+		</div>
+	{% endwith %}
+</div>
+{% endblock %}

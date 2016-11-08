@@ -1,0 +1,11 @@
+<p>{{ _('Hello, %(username)s', username=user.username) }}.</p>
+
+<p>{{ _('You are receiving this message because your e-mail has been used to register an Auxierre account.')}}</p>
+<p>{{ _('If you did not perform this action, simply ignore this e-mail.')}}</p>
+
+<p>{{ _('If you did sign up, please confirm your e-mail address by clicking on this link:')}}</p>
+<a href="{{ url_for('verify', verification=verification, _external=True) }}">{{ _('Click here')}}</a>
+
+<p>{{ _('Regards,')}}</p>
+
+<p>{{ _('the Auxierre admin')}}</p>

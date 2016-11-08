@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+
+{% block title %}
+
+{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/redstyle.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/loadinganimation.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-sm-3 col-md-2 sidebar">
+			<ul class="nav nav-sidebar">
+				<li id="overview" class="active"><a href="#">{{ _('Overview') }} <span class="sr-only">(current)</span></a></li>
+				<li id="spectrum"><a href="#">{{ _('Spectrum') }}</a></li>
+				<li id="bpulse"><a href="#">{{ _('Beat pulsing') }}</a></li>
+				<li id="color"><a href="#">{{ _('Colour Picker') }}</a></li>
+			</ul>
+		</div>
+		<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+			<h1 id="title"></h1>
+			<p class="timer">00:00 </p>/ <p class="duration">00:00</p>
+			<div class="row">
+				<div class="wrapper">
+					<div class="top"></div>
+				    <div class="arc one arc_start"></div>
+				    <div class="arc one arc_end"></div>
+				    <div class="arc two arc_start"></div>    
+				    <div class="arc two arc_end"></div>
+				    <div class="arc three arc_start"></div>
+				    <div class="arc three arc_end"></div>
+				    <div class="arc four arc_start"></div>
+				    <div class="arc four arc_end"></div>
+				    <div class="arc five arc_start"></div>
+				    <div class="arc five arc_end"></div>
+				</div>
+				<div id="wave"></div>
+				<button class="btn btn-danger" id="endless"><span>Endless</span></button>
+				<div class="btn-group" role="group" id="media"	>
+					<button class="btn btn-default play"><span class="glyphicon glyphicon-play audiocontrol"></span></button>
+					<button class="btn btn-default pause"><span class="glyphicon glyphicon-pause audiocontrol"></button>
+					<button class="btn btn-default stop"><span class="glyphicon glyphicon-stop audiocontrol"></button>
+					<button class="btn btn-default fullscreenButton"><span class="glyphicon glyphicon-fullscreen"></span></button>
+				</div>
+			</div>
+			<hr>
+			<div id="overview" class="visual">
+			</div>
+				
+			<div id="spectrum" class="visual">
+				<svg id="spectrum" class="visualsvg"></svg>
+			</div>
+			<div id="bpulse" class="visual">
+				<svg id="bpulse" class="visualsvg"></svg>
+			</div>
+			<div id="color" class="visual">
+				<div id="colorpicker"></div>
+				<div id="colorrange">
+					<p>{{ _('Red')}}: </p>
+					<input id="red" type="range" max="255">
+					<p>{{ _('Green')}}: </p>
+					<input id="green" type="range" max="255">
+					<p>{{ _('Blue')}}: </p>
+					<input id="blue" type="range" max="255">
+				</div>
+				<div>
+					<h4>{{ _('Set colours') }}</h4>
+					<button id="setnone" class="btn btn-default">{{ _('Set to none')}}</button><br>
+					<input type="text" id="hexinput" value="Enter a hexcode">
+					<button id="submithex" class="btn btn-default">{{ _('Submit')}}</button><br>
+					<button class="btn btn-default" id="defaultcolors">{{ _('Reset to default')}}</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
+{% block script %}
+<script src="{{ url_for('static', filename='js/wavesurfer.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/d3.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/colorpicker.js') }}"></script>
+<script src="{{ url_for('static', filename='js/visualisation.js') }}"></script>
+<script type="text/javascript">
+	var wavesurfer = Object.create(WaveSurfer);
+	var colorpicker = Object.create(ColorPicker);
+	var visualisationFramework = Object.create(AuxierreFramework);
+	var spectrumVis = Object.create(SpectrumVisualisation);
+	var beatVis = Object.create(BeatPulseVisualisation);
+	var orig_rating = $(".rating").text();
+	var rating = orig_rating;
+	var csrf = "{{ csrf_token() }}";
+	var overrideBuffer = false;
+	var songId = 0;
+
+	function loadSong(id){
+		songId = id;
+		visualisationFramework.songId = id;
+		visualisationFramework.transformData = [];
+		visualisationFramework.lastIndex = 0;
+
+		visualisationFramework.playonLoad = true;
+		visualisationFramework.songLoaded = false;
+
+		$.get("/songinfo/"+songId, function(data){
+			$("div#overview").html(data["overview"]),
+			$("h1#title").text(data["title"])
+			wavesurfer.load(data["link"]);
+			$("title").html("{{ _('Auxierre') }} - "+data['title']);
+		});
+
+		drawRating(orig_rating);
+		$("p.ratingnumber").remove();
+		$(".rating img").on('mousemove', setRating);
+		$("td.rating span").mouseleave(function(){
+			drawRating(orig_rating);
+		});
+		$(".rating img").css("cursor", "pointer");
+		$(".rating img").css("height", "50%");
+		$(".rating img").click(sendRating);
+	}
+
+	$(document).ready(function(){
+		colorpicker.init({
+			"container": "div#colorpicker",
+		});
+
+		$("#setnone").click(function(){
+			colorpicker.setColorRange("none");
+		})
+
+		$("#submithex").click(function(){
+			colorpicker.setColorRange($("input#hexinput").val());
+		});
+
+		$("#defaultcolors").click(function(){
+			colorpicker.setColorToDefault();
+		});
+
+		var reg = /t=(\d+)/;
+		var skipTo = reg.exec("{{ request.query_string }}");
+		if (skipTo){
+			skipTo = skipTo[1];
+		}else{
+			skipTo = 0;
+		}
+
+		visualisationFramework.init({
+			"visualisations": {"spectrum": spectrumVis, "bpulse": beatVis},
+			"wavesurfer": wavesurfer,
+			"colorpicker": colorpicker,
+			"timerContainer": ".timer",
+			"fullscreen": "#fullscreen svg"});
+
+		spectrumVis.init({
+			"container": "svg#spectrum",
+			"framework": visualisationFramework});
+
+		beatVis.init({
+			"container": "svg#bpulse",
+			"framework": visualisationFramework,
+			"drawDelay": 700});
+
+		$(window).resize(function(){
+			spectrumVis.calcDimensions(visualisationFramework.fullscreen);
+			beatVis.calcDimensions(visualisationFramework.fullscreen);
+		});
+
+		wavesurfer.init({
+			container: '#wave',
+			waveColor: '#DC143C',
+			progressColor: '#800000',
+		});
+
+		var reg = /s=(\d+)/;
+		songId = reg.exec("{{ request.query_string }}");
+		if (songId){
+			songId = songId[1];
+			visualisationFramework.songId = songId;
+		}
+
+		loadSong(songId);
+
+		wavesurfer.on('ready', function(){
+			visualisationFramework.songLoaded = true;
+			visualisationFramework.getData();
+			var duration = wavesurfer.getDuration();
+			var songMin = visualisationFramework.pad(Math.floor(duration / 60), 2);
+			var songSec = visualisationFramework.pad(Math.floor(duration % 60), 2);
+			$(".duration").text(songMin+":"+songSec);
+			$(".wrapper").remove();
+			if (visualisationFramework.playOnLoad){
+				wavesurfer.play(skipTo);
+				visualisationFramework.updateInterval = setTimeout(visualisationFramework.update.bind(visualisationFramework), visualisationFramework.timePerSegment / 2);
+			}else{
+				wavesurfer.seekTo(skipTo / duration);
+				visualisationFramework.updateDuration();
+			}
+			spectrumVis.calcDimensions(visualisationFramework.fullscreen);
+			beatVis.calcDimensions(visualisationFramework.fullscreen);
+		});
+		
+		wavesurfer.on('finish', function(){
+			if (visualisationFramework.endless){
+				wavesurfer.play(0);
+			}else{
+				window.clearTimeout(visualisationFramework.updateInterval);
+			}
+			visualisationFramework.lastJump = 0;
+			visualisationFramework.lastCheck = 0;
+		});
+
+		$("div#wave").click(function(){
+			setTimeout(visualisationFramework.updateDuration.bind(visualisationFramework), 25);
+			visualisationFramework.lastJump = 0;
+			visualisationFramework.lastCheck = 0;
+		});
+
+
+		$(".play").click(function(){
+			$(this).attr("class", "btn btn-default playing");
+			if (!visualisationFramework.songLoaded){
+				visualisationFramework.playOnLoad = true;
+			}else{
+				wavesurfer.play();
+				visualisationFramework.updateInterval = setTimeout(visualisationFramework.update.bind(visualisationFramework), visualisationFramework.timePerSegment / 2);
+			}
+		});
+
+		$(".pause").click(function(){
+			$(".play").attr("class", "btn btn-default");
+			visualisationFramework.playOnLoad = false;
+			wavesurfer.pause();
+			window.clearTimeout(visualisationFramework.updateInterval);
+		});
+
+		$(".stop").click(function(){
+			$(".play").attr("class", "btn btn-default");
+			visualisationFramework.playOnLoad = false;
+			wavesurfer.stop();
+			window.clearTimeout(visualisationFramework.updateInterval);
+ 			visualisationFramework.lastJump = 0;
+			visualisationFramework.lastCheck = 0;
+		});
+
+		$(".fullscreenButton").click(function(){
+			if (visualisationFramework.visualisations[visualisationFramework.active] === undefined){
+				visualisationFramework.active = 'spectrum';
+			}
+			visualisationFramework.fullscreenToggle();
+			
+			if (overrideBuffer){
+				wavesurfer.drawBuffer();
+				overrideBuffer = false;
+			}
+			if (!visualisationFramework.songLoaded){
+				overrideBuffer = true;
+			}
+		});
+
+		$("#endless").click(function(){
+			if (visualisationFramework.endless){
+				visualisationFramework.endless = false;
+				$(this).attr("class", "btn btn-danger");
+			}else{
+				visualisationFramework.endless = true;
+				$(this).attr("class","btn btn-success");
+			}
+		});
+
+		$(".nav-sidebar > li").click(function(){
+			var idstring = "#" + $(this).attr("id");
+			var sel = "div"+ idstring;
+			$("div#"+$(".active").attr("id")).css("height", "0");
+			$(sel).css("height", "auto");
+			$(".active").attr("class", "");
+			$(this).attr("class", "active");
+			visualisationFramework.changeActive($(this).attr("id"));
+		});
+	});
+
+
+	function sendRating(){
+		orig_rating = rating;
+		$.ajax({
+			url: songId + "/rate/",
+			type: "POST",
+			data: {"score": rating, "_csrf_token": csrf},
+			success: function(data){
+				console.log(data);
+			}
+		})
+	}
+	
+	function setRating(e){
+		rating = $(".rating img").index(e.target) + 0.5;
+		if (e.offsetX > e.target.width / 2){
+			rating += 0.5;
+		}
+		drawRating(rating);
+	}
+
+	function drawRating(rating){
+		var full = Math.floor(rating);
+		var half = Math.ceil(rating % 1);
+		var nr = 5 - full - half;
+		var ratingData = [];
+
+		for (var i = 0; i < full; ++i){
+			ratingData.push(1);
+		}
+		for (var i = 0; i < half; ++i){
+			ratingData.push(0.5);
+		}
+		for (var i = 0; i < nr; ++i){
+			ratingData.push(0);
+		}
+
+		d3.select(".rating").selectAll("img").data(ratingData)
+			.attr("src", function(d) 
+				{ if (d == 1){
+					return "{{ url_for('static', filename='img/star-full.png')}}";
+				}else if (d == 0.5){
+					return "{{ url_for('static', filename='img/star-half.png')}}";
+				}else{
+					return "{{ url_for('static', filename='img/star-empty.png')}}";
+				}
+			})
+		.enter().append("img")
+			.attr("src", function(d) 
+				{ if (d == 1){
+					return "{{ url_for('static', filename='img/star-full.png')}}";
+				}else if (d == 0.5){
+					return "{{ url_for('static', filename='img/star-half.png')}}";
+				}else{
+					return "{{ url_for('static', filename='img/star-empty.png')}}";
+				}
+			});
+	}
+</script>
+{% endblock %}

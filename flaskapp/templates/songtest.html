@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+	<img id="play" class="audio-control" src="{{ url_for('static', filename='play button.png') }}" alt="">
+	<img id="pause" class="audio-control" src="{{ url_for('static', filename='pause button.png') }}" alt="" >
+	<img id="stop" class="audio-control" src="{{ url_for('static', filename='stop button.png') }}" alt="" >
+	<div id="progress" style="background: red; width: 0px; height: 10px;"></div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script src="{{ url_for('static', filename='js/audio player.js') }}"></script>
+<script type="text/javascript">
+	var ap = new AudioPlayer;
+	var interval;
+
+	$(document).ready(function(){
+		ap.load("/static/sounds/2015-11-17-13-12-22-260890.mp3");
+	});
+
+	$("#play").click(function(){
+		ap.toggle();
+		if (!interval){
+			interval = setInterval(function(){ 
+					$("#progress").css("width", 100 * ap.getCurrenttime() / ap.songLength.toString() + "%");
+				}, 10);
+		}else{
+			clearInterval(interval);
+			interval = false;
+		}
+	});
+
+	$("#pause").click(function(){
+		ap.toggle();
+		if (!interval){
+			interval = setInterval(function(){ 
+					$("#progress").css("width", 100 * ap.getCurrenttime() / ap.songLength.toString() + "%");
+				}, 10);
+		}else{
+			clearInterval(interval);
+			interval = false;
+		}
+	});
+
+	$("#stop").click(function(){
+		ap.fullStop();
+		clearInterval(interval);
+		interval = false;
+		$("#progress").css("width", "0%");
+	});
+</script>
+{% endblock %}

@@ -1,0 +1,18 @@
+<html>
+<head>
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', _external=True) }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css', _external=True) }}">
+</head>
+<div class="container">
+	<div class="banner" style="margin-top: 0">
+		<div>
+			<img class="logo" src="{{ url_for('static', filename='img/logo white.png', _external=True) }}" alt="Auxierre logo">
+			<div class="brand">
+				<h1>{{ _('Auxierre') }} - {{ _('the online audio visualiser') }}</h1>
+			</div>
+		</div>
+	</div>
+{% block content %}
+{% endblock %}
+</div>
+</html>

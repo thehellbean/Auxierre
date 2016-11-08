@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ _('Auxierre') }} - {{ _('Statistics') }}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+	<p>There are {{ stats["total_song"] }} songs uploaded on the website, totaling {{ stats["total_seconds"] }} seconds, or {{ '%0.1f' % (stats["total_seconds"] / 60) }} minutes.</p>
+	<p>They have a total of {{ stats["total_views"] }} views and an average rating of {{ '%0.2f' % stats["average_rating"] }}</p>
+	<p>The average amount of views per song is {{ '%0.1f' % stats["avg_views"] }}</p>
+	<p>There is a total amount of {{ stats["total_data"] }} data points, representing {{ (stats["total_data"] / 20)|int }} data windows. This much data takes up {{ stats["total_data"] * 4 }} bytes, 
+		{{ '%0.2f' % (stats["total_data"] / 256) }} kilobytes or {{ '%0.2f' % (stats["total_data"] / 262144) }} megabytes</p>
+</div>
+{% endblock %}

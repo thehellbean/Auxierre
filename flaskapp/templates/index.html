@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ _('Auxierre') }} - {{ _('the online audio visualiser') }}
+{% endblock %}
+{% block banner %}
+	<div class="banner">
+		<div>
+			<img class="logo" src="{{ url_for('static', filename='img/logo white.png') }}" alt="Auxierre logo">
+			<div class="brand">
+				<h1>{{ _('Auxierre') }} - {{ _('the online audio visualiser') }}</h1>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+{% block content %}
+	<div class="container">
+		<div class="col-md-12 info">
+			<h3>{{ _('What is Auxierre?') }}</h3>
+			<p>{{ _('Auxierre is a browser based audio visualiser which uses SVG and JavaScript to visualise audio in multiple interesting ways.') }}</p>
+			{% autoescape false %}
+			<p>{{ _('For a more detailed overview and explanation, head on over to the %(about)sabout page</a> or check out the %(song)s song catalogue</a>',  about='<a href="%s">' % url_for('about'), song='<a href="%s">' % url_for('catalogue'))}}</p>
+			{% endautoescape %}
+		</div>
+		<div class="col-md-6 featured">
+			<h3>{{ _('Featured song') }}</h3>
+			<a href="{{ url_for('visualise') + '?s=' + featured.song.id|string}}"><h4>{{ featured.song.title }}</h4></a>
+			<p>{{ featured.description }}</p>
+		</div>
+		<div class="col-md-6 updates">
+			<h3>{{ _('Recent updates') }}</h3>
+			<p>THERE ARE NONE</p>
+		</div>
+	</div>
+{% endblock %}

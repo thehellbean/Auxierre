@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ _('Auxierre') }} - {{ _('upload a transformation') }}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-sm-3 col-md-2 sidebar">
+			<h3>{{ _('Latest uploaded songs') }}</h3>
+			<ul>
+				{% for song in recent_song %}
+					{% if song.artist %}
+						<li><a href="./{{ song.id }}">{{ _('%(title)s by %(artist)s', title=song.title, artist=song.artist) }}</a></li>
+					{% else %}
+						<li><a href="./{{ song.id }}">{{ song.title }}</a></li>
+					{% endif %}
+				{% endfor %}
+			</ul>
+		</div>
+		<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+		<div class="form-group" style="position: absolute; top: -1000px;">
+		</div>
+		<h1>{{ _('Upload song')}}</h1>
+		<div class="btn-group" role="group">
+			<button id="upload" class="btn btn-primary"><span class="glyphicon glyphicon-chevron-up"></span> {{ _('Upload')}}</button>
+			<button id="add-file" class="btn btn-success"><span class="glyphicon glyphicon-plus"></span> {{ _('Add file')}}</button>
+			<button id="delete-all" class="btn btn-danger"><span class="glyphicon glyphicon-remove"></span> {{ _('Delete all')}}</button>
+		</div>
+		<ul id="files"></ul>
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+	var files = [];
+	var filenames = [];
+	var private_values = [];
+	var max = 3;
+	$("#add-file").click(function(){
+		if (files.length < max){
+			if ($("input[name='song']").length === 0){
+				$(".form-group").append('<input type="file" name="song" accept="audio/mp3" maxlength="2" multiple>');
+
+				$("input[name='song']").change(function(){
+					var f = $("input")[0].files;
+					for (var i = 0; i < f.length; ++i){
+						var file = f[i];
+						files.push(file);
+						var name = file.name;
+						if (filenames.indexOf(name) != -1){
+							var size = filenames.filter(function(value) { return value.indexOf(name) !== -1 }).length;
+							name = name + " "+size;
+						}
+						filenames.push(name);
+						private_values.push(false);
+						var num = filenames.indexOf(name);
+						addSong(num, name, file);
+						$(this).remove();
+						$("input[name='private"+num+"']").on('change', function(){
+							var num = $(this).parent().parent().attr("id");
+							var ix = filenames.indexOf($("li#"+num).find(".songname").text());
+							private_values[ix] = $(this).is(":checked");
+						});
+						$("li#"+num+" span").click(function(){
+							var num = $(this).parent().parent().attr("id");
+							var ix = filenames.indexOf($("li#"+num).find(".songname").text());
+							files.splice(ix, 1);
+							filenames.splice(ix, 1);
+							private_values.splice(ix, 1);
+							$("li#"+num).remove();
+						});
+						if (files.length > max){
+							alert("You are only allowed 3 files!");
+							break;
+						}
+					}
+				});
+			}
+		}else{
+			alert("You are only allowed 3 files!");
+		}
+		$("input[name='song']").trigger("click");
+	});
+
+	$("#delete-all").click(function(){
+		files = [];
+		filenames = [];
+		private_values = [];
+		$("#files").html("");
+	})
+
+	$("#upload").click(function(){
+		if (files.length > 0){
+			$(".form-group").append('<input type="file" name="song" accept="audio/mp3" maxlength="2">');
+			var form_data = new FormData($("input[name='song']"));
+			for (var i = 0; i < files.length; ++i){
+				form_data.append("files", files[i]);
+			}
+			form_data.append("_csrf_token", "{{ csrf_token() }}");
+			for (var i = 0; i < private_values.length; ++i){
+				form_data.append("private", private_values[i]);
+			}
+			$.ajax({url: "/upload/", 
+				data: form_data, 
+				type: "POST", 
+				processData: false, 
+				contentType: false,
+				success: function(data){
+					$("<div id='overlay'><h1>{{ _('Here are your transform links!') }}</h1></div>").insertAfter($("nav"));
+					$("#overlay").append("<ul id='transforms'></ul>");
+					for (var i = 0; i < data["id"].length; ++i){
+						$("#transforms").append('<li><a href="./'+data["id"][i]+'">'+data["name"][i]+'</a></li>');
+					}
+				}
+			});
+		}
+	});
+
+	function addSong(num, songname, file){
+		$("#files").append("<li id="+num+"><div class='song'><span class='glyphicon glyphicon-remove'></span><br><p class='songname'>"+songname+"</p></div></li>");
+		$("#"+num+" .song").append("<br><p> Filetype: "+file.type.slice(6)+"</p><br><p>Size: "+(file.size / 1024).toFixed(2) +" kB</p>");
+		$("#"+num+" .song").append("<br><label for='private"+num+"'>Private:</label><input type='checkbox' name='private"+num+"'></input>");
+	}
+</script>
+{% endblock %}

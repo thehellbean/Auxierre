@@ -1,0 +1,19 @@
+.search{
+	border: 1px solid black;
+	border-radius: 10px;
+	padding: 10px;
+	margin-bottom: 15px;
+}
+
+input[type="submit"]{
+	display: inline-block;
+	margin-top: 20px;
+}
+
+ul.page-list{
+	list-style: none;
+}
+
+ul.page-list li {
+	display: inline-block;
+}

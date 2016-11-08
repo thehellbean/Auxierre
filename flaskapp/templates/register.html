@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ _('Auxierre')}} - {{ _('Register')}}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+	{% if error %}
+	<p class="error">{{ error }}</p>
+	{% endif %}
+	<form action="" method="post">
+		<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+		<label for="username">{{ _('Username') }}</label>
+		<br>
+		<input type="text" name="username" class="form-control" required="true">
+		<br>
+		<label for="password">{{ _('Password')}}</label>
+		<br>
+		<input type="password" name="password" class="form-control" required="true">
+		<br>
+		<label for="verifypassword">{{ _('Verify password')}}</label>
+		<br>
+		<input type="password" name="verifypassword" class="form-control" required="true">
+		<br>
+		<label for="email">{{ _('Email')}}</label>
+		<br>
+		<input type="email" name="email" class="form-control" required="true">
+		<br>
+		<label for="verifyemail">{{ _('Verify email')}}</label>
+		<br>
+		<input type="email" name="verifyemail" class="form-control" required="true">
+		<br><br>
+		<input type="submit" value="{{ _('Submit')}}" class="form-control">
+	</form>
+</div>
+{% endblock %}

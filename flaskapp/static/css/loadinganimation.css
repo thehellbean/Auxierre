@@ -1,0 +1,83 @@
+.wrapper {
+    position:relative;
+    margin:20px;
+    margin-left: auto;
+    width: 60%;
+}
+
+.top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 120px;
+    height: 120px;
+    border-radius: 60px;
+    border: 3px solid rgb(0, 0, 0);
+}
+
+.arc {
+    position:absolute;
+    border-radius:100%;
+    border:1px solid rgb(0, 0, 0);
+    animation-timing-function: linear;
+    animation-duration: 4s;
+    animation-iteration-count: infinite;
+}
+
+.arc.one {
+    top:10px;
+    left:10px;
+    width:100px;
+    height:100px;
+}
+
+.arc.two{
+    top: 20px;
+    left: 20px;
+    width: 80px;
+    height: 80px;
+    animation-direction: reverse;
+}
+
+.arc.three{
+    top: 30px;
+    left: 30px;
+    width: 60px;
+    height: 60px;
+}
+
+.arc.four{
+    top: 40px;
+    left: 40px;
+    width: 40px;
+    height: 40px;
+    animation-direction: reverse;
+}
+
+.arc.five{
+    top: 50px;
+    left: 50px;
+    width: 20px;
+    height: 20px;
+}
+
+.arc_start {
+    border-color:transparent black black black;
+    transform: rotate(45deg);
+    animation-name: spin_start;
+}
+.arc_end {
+    border-color:black black black transparent;
+    transform: rotate(135deg);
+    animation-name: spin_end;
+}
+
+@keyframes spin_start{
+    0% { transform: rotate(45deg); }
+    100% { transform: rotate(405deg); }
+}
+
+@keyframes spin_end {
+    0% { transform: rotate(135deg); }
+    100% { transform: rotate(495deg); }
+}

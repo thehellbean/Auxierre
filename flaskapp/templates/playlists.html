@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+	<h1>{{ playlist.name }} by <a href="{{ url_for('user', userid=playlist.user.id) }}">{{ playlist.user.username }}</a></h1>
+{% for song in playlist.songs %}
+	<a href="{{ url_for('transform_info', songid=song.id ) }}">{{ song.title }}</a><br>
+{% endfor %}
+</div>
+
+{% endblock %}

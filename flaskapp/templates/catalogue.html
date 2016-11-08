@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/catalogue.css') }}">
+{% endblock %}
+
+{% block title %}
+{{ _('Auxierre') }} - {{ _('song list') }}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+	<div class="search">
+		<form id="search" action="./" method="get">
+	    <div class="form-group">
+	        <div class="row">
+	            <div class="col-md-2">
+	                <label for="title">{{ _('Title') }}</label>
+	                <input type="text" class="form-control" name="title" value="{{ request.args.get('title', '') }}">
+	            </div>
+	            <div class="col-md-2">
+	                <label for="artist">{{ _('Artist') }}</label>
+	                <input type="text" class="form-control" name="artist" value="{{ request.args.get('artist', '') }}">
+	            </div>
+	            <div class="col-md-2">
+	            	<label for="album">{{ _('Album') }}</label>
+		        	<input type="text" class="form-control" name="album" value="{{ request.args.get('album', '') }}">
+	            </div>
+	            <div class="col-md-2">
+	            	<label for="genre">{{ _('Genre') }}</label>
+		        	<input type="text" class="form-control" name="genre" value="{{ request.args.get('genre', '') }}">
+	            </div>
+	            <div class="col-md-2">
+	            	<label for="uploader">{{ _('Uploader')}}</label>
+	            	<input type="text" class="form-control" name="uploader" value="{{ request.args.get('uploader', '') }}">
+	            </div>
+	            <div class="col-md-3">
+	            	<label for="sort">Sort by</label>
+	            	<select name="sort" class="form-control">
+	            		<option value=0>{{ _('Title') }}</option>
+	            		<option value=1>{{ _('Artist') }}</option>
+	            		<option value=2>{{ _('Album') }}</option>
+	            		<option value=3>{{ _('Genre') }}</option>
+	            		<option value=4>{{ _('Duration') }}</option>
+	            		<option value=5>{{ _('Views')}}</option>
+	            		<option value=6>{{ _('Rating')}}</option>
+	            		<option value=7>{{ _('Uploaded on')}}</option>
+	            		<option value=8>{{ _('Uploader')}}</option>
+	            	</select>
+	            </div>
+	            <div class="col-md-3">
+	            	<input type="submit" value="{{ _('Search') }}" class="form-control"></input>
+	            </div>
+	        </div>
+	    </div>
+	    </form>
+	</div>
+	{% if songs %}
+	<p>Go to page: </p>
+	<ul class="page-list">
+	{% for page in songs.iter_pages() %}
+		{% if page %}
+			{% if page != songs.page %}
+				<li><a href="{{ url_for('catalogue', page=page) }}?{{ request.query_string }}">{{ page }}</a></li>
+			{% else %}
+				<li><b>{{ page }}</b></li>
+			{% endif %}
+		{% else %}
+			<span class="ellipsis">...</span>
+		{% endif %}
+	{% endfor %}
+	</ul>
+	<table class="table table-bordered">
+		<th>{{ _('Artist') }}</th>
+		<th>{{ _('Title') }}</th>
+		<th>{{ _('Genre') }}</th>
+		<th>{{ _('Album') }}</th>
+		<th>{{ _('Duration') }}</th>
+		<th>{{ _('Views')}}</th>
+		<th>{{ _('Rating')}}</th>
+		<th>{{ _('Uploaded on')}}</th>
+		<th>{{ _('Uploader')}}</th>
+	{% for song in songs.items %}
+		<tr>
+			{% if song.artist %}
+			<td>{{ song.artist }}</td>
+			{% else %}
+			<td>{{ _('Unknown') }}</td>
+			{% endif %}
+			<td><a href="{{ url_for('visualise') + '?s=' + song.id|string}}">{{ song.title }}</a></td>
+			{% if song.genre %}
+			<td>{{ song.genre }}</td>
+			{% else %}
+			<td>{{ _('Unknown') }}</td>
+			{% endif %}
+			{% if song.album %}
+			<td>{{ song.album }}</td>
+			{% else %}
+			<td>{{ _('Unknown') }}</td>
+			{% endif %}
+			<td>{{ '%02d' % (song.duration / 60)|int}}:{{ '%02d' % (song.duration % 60) }}</td>
+			<td>{{ song.views }}</td>
+			<td>{{ song.average_rating }}</td>
+			<td>{{ song.created.strftime("%Y-%m-%d %H:%M") }} UTC</td>
+			<td><a href="{{ url_for('user', userid=song.user_id) }}">{{ song.user.username }}</a></td>
+		</tr>
+	{% endfor %}
+	</table>
+	{% else %}
+	<p>{{ _("Sorry, your search didn't turn up any results") }}</p>
+	{% endif %}
+</div>
+{% endblock %}

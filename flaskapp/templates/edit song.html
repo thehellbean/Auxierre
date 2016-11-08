@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ _('Auxierre') }} - {{ _('edit %(songname)s', songname=song.title) }}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+	<h2 class="info" style="opacity: 0">Something</h2>
+	<p>{{ _('You are currently editing %(songname)s', songname=song.title) }}</p><br><br>
+	<form role="form" method="POST">
+		<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+		<div class="form-group">
+			<h4>{{ _('Title') }}</h4>
+			<input type="text" name="title" class="form-control" value="{{ song.title }}"></input>
+		</div>
+		<div class="form-group">
+			<h4>{{ _('Artist') }}</h4>
+			<input type="text" name="artist" class="form-control" value="{{ song.artist }}"></input>
+		</div>
+		<div class="form-group">
+			<h4>{{ _('Genre') }}</h4>
+			<input type="text" name="genre" class="form-control" value="{{ song.genre }}"></input>
+		</div>
+		<div class="form-group">
+			<h4>{{ _('Album') }}</h4>
+			<input type="text" name="album" class="form-control" value="{{ song.album }}"></input>
+		</div>
+		<div class="form-group">
+			<h4>{{ _('Private') }}</h4>
+			<input type="checkbox" name="private" {% if song.private %} checked {% endif %}>
+		</div>
+		<button id="save" class="btn btn-default">Save</button>
+		<button id="delete" class="btn btn-danger">Delete song</button>
+	</form>
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+	$(document).ready(function(){
+		$("form").submit(function(e){
+			$.ajax({
+				type: "POST",
+				data: $(this).serializeArray(),
+				success: function(data){
+					$(".info").text("Information updated!");
+					$(".info").animate({
+						opacity: 1
+					}, 900, function() { $(this).animate({
+						opacity: 0
+					}, 900)})
+				},
+				error: function(data){
+					$(".info").text("Something went wrong. Try again later");
+				}
+			});
+			e.preventDefault();
+		})
+
+		$("#delete").click(function(){
+			if (confirm("Are you sure you want to delete this song? This can not be undone")){
+				var data = $("form").serializeArray();
+				data.push({name: "delete", value: true});
+				$.ajax({
+					type: "POST",
+					data: data,
+					success: function(data){
+						window.location = "/catalogue";
+					}
+				})
+			}
+		})
+	});
+</script>
+{% endblock %}

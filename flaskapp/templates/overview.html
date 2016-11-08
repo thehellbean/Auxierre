@@ -1,0 +1,66 @@
+<h2>{{ _('Overview')}}</h2>
+<table class="table table-bordered">
+	<h4>{{ _('Song information')}}</h4>
+	{% if song.artist %}
+	<tr>
+		<td>{{ _('Artist') }}</td>
+		<td>{{ song.artist }}</td>
+	</tr>
+	{% endif %}
+	<tr>
+		<td>{{ _('Title')}}</td>
+		<td>{{ song.title }}</td>
+	</tr>
+	{% if song.album %}
+	<tr>
+		<td>{{ _('Album') }}</td>
+		<td>{{ song.album }}</td>
+	</tr>
+	{% endif %}
+	{% if song.genre %}
+	<tr>
+		<td>{{ _('Genre') }}</td>
+		<td>{{ song.genre }}</td>
+	</tr>
+	{% endif %}
+	<tr>
+		<td>{{ _('Uploaded on') }}</td>
+		<td>{{ song.created.strftime("%Y-%m-%d %H:%M") }} UTC</td>
+	</tr>
+	<tr>
+		<td>{{ _('Total amount of views') }}</td>
+		<td>{{ song.views }} </td>
+	</tr>
+	<tr>
+		<td>{{ _('Average score (click to rate)') }}</td>
+		<td class="rating">
+			<span>
+				<p class="ratingnumber">{{ song.average_rating }}</p>
+				<img src="" alt="">
+				<img src="" alt="">
+				<img src="" alt="">
+				<img src="" alt="">
+				<img src="" alt="">
+			</span>
+		</td>
+	</tr>
+	{% if song.user %}
+	<tr>
+		<td>{{ _('Uploaded by') }}</td>
+		<td><a href="{{ url_for('user', userid=song.user.id) }}">{{ song.user.username }}</a></td>
+	</tr>
+	{% endif %}
+</table>
+{% if song.data_length %}
+<table class="table table-bordered">
+	<h4>{{ _('Transformation information')}}</h4>
+	<tr>
+		<td>{{ _('Total amount of data points') }}</td>
+		<td>{{ song.data_length }}</td>
+	</tr>
+	<tr>
+		<td>{{ _('Analysis windows') }}</td>
+		<td>{{ (song.data_length / 20)|int }}</td>
+	</tr>
+</table>
+{% endif %}

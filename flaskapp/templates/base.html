@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name=viewport content="width=device-width,initial-scale=1,user-scalable=no">
+		<link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/style.css') }}">
+		<link rel="apple-touch-icon" sizes="57x57" href="/static/img/apple-touch-icon-57x57.png">
+		<link rel="apple-touch-icon" sizes="60x60" href="/static/img/apple-touch-icon-60x60.png">
+		<link rel="apple-touch-icon" sizes="72x72" href="/static/img/apple-touch-icon-72x72.png">
+		<link rel="apple-touch-icon" sizes="76x76" href="/static/img/apple-touch-icon-76x76.png">
+		<link rel="apple-touch-icon" sizes="114x114" href="/static/img/apple-touch-icon-114x114.png">
+		<link rel="apple-touch-icon" sizes="120x120" href="/static/img/apple-touch-icon-120x120.png">
+		<link rel="apple-touch-icon" sizes="144x144" href="/static/img/apple-touch-icon-144x144.png">
+		<link rel="apple-touch-icon" sizes="152x152" href="/static/img/apple-touch-icon-152x152.png">
+		<link rel="apple-touch-icon" sizes="180x180" href="/static/img/apple-touch-icon-180x180.png">
+		<link rel="icon" type="image/png" href="/static/img/favicon-32x32.png" sizes="32x32">
+		<link rel="icon" type="image/png" href="/static/img/android-chrome-192x192.png" sizes="192x192">
+		<link rel="icon" type="image/png" href="/static/img/favicon-96x96.png" sizes="96x96">
+		<link rel="icon" type="image/png" href="/static/img/favicon-16x16.png" sizes="16x16">
+		<link rel="manifest" href="/static/img/manifest.json">
+		<link rel="mask-icon" href="/static/img/safari-pinned-tab.svg" color="#5bbad5">
+		<link rel="shortcut icon" href="/static/img/favicon.ico">
+		<meta name="msapplication-TileColor" content="#da532c">
+		<meta name="msapplication-TileImage" content="/static/img/mstile-144x144.png">
+		<meta name="msapplication-config" content="/static/img/browserconfig.xml">
+		<meta name="theme-color" content="#ffffff">
+		{% block head %}{% endblock %}
+		<title>{% block title %}{% endblock %}</title>
+	</head>
+
+	<body>
+		<div id="wrap">
+			<nav class="navbar navbar-default navbar-static-top navbar-inverse">
+				<div class="container-fluid">
+					<div class="navbar-header">
+						<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+							<span class="sr-only">Toggle navigation</span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+							<span class="icon-bar"></span>
+						</button>
+						<a class="navbar-brand" href="/"> {{ _('Auxierre') }}</a>
+					</div>
+					<div id="navbar" class="collapse navbar-collapse">
+					<ul class="nav navbar-nav">
+						<li><a href="{{ url_for('transform_upload') }}">{{ _('Upload') }}</a></li>
+						<li><a href="{{ url_for('catalogue') }}">{{ _('View all songs') }}</a></li>
+						<li><a href="{{ url_for('stats') }}">{{ _('Statistics') }}</a></li>
+						<li><a href="{{ url_for('updates') }}">{{ _('Update log') }}</a></li>
+						<li class="dropdown">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ _('About') }} <span class="caret"></span></a>
+							<ul class="dropdown-menu">
+								<li>
+									<a href="">{{ _('FAQ') }}</a>
+									<a href="">{{ _('About the creator') }}</a>
+									<a href="">{{ _('About the project') }}</a>
+								</li>
+							</ul>
+						</li>
+						<li><a href="{{ url_for('contact') }}">{{ _('Contact') }}</a></li>
+					</ul>
+				
+					<ul class="nav navbar-nav navbar-right">
+						{% with user = get_user() %}
+							<li class="dropdown">
+								{% if user %}
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ user.username }} <span class="caret"></span></a>
+								{% else %}
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ _('User controls') }} <span class="caret"></span></a>
+								{% endif %}
+								<ul class="dropdown-menu">
+									<li>
+							{% if user %}
+								<a href="{{ url_for('user', userid=user.id) }}">{{ _('User profile')}}</a>
+								{% if user.permissions >= 4 %}
+								<a href="{{ url_for('admin') }}">{{ _('Admin panel')}}</a>
+								{% endif %}
+								<a href="{{ url_for('logout') }}">{{ _('Logout')}}</a>
+							{% else %}
+								<a href="{{ url_for('login') }}">{{ _('Login')}}</a>
+								<a href="{{ url_for('register') }}">{{ _('Register')}}</a>
+							{% endif %}
+									</li>
+								</ul>
+							</li>
+						{% endwith %}
+						<li>
+							<div class="btn-group">
+							<a class="btn dropdown-toggle" id="langlist" data-toggle="dropdown" href="#" style="min-width: 150px">
+								<img class="flag" alt="active language flag" src="{{ url_for('static', filename='img/'+get_flag()[0]+'.png') }}" alt="">
+								{{ get_flag()[1] }}  <span class="caret"></span>
+							</a>
+								<ul class="dropdown-menu">
+									{% for flag in get_flag_list() %}
+									<li><a href="#" class="lang" name="{{ flag[0] }}"><img class="flag" src="{{ url_for('static', filename='img/'+flag[0]+'.png') }}" alt="">{{ flag[1] }}</a></li>
+									{% endfor %}
+								</ul>
+							</div>
+						</li>
+					</ul>
+				
+					</div>
+				</div>
+			</nav>
+			{% block banner %}{% endblock %}
+			<div class="container-fluid">
+			{% with messages = get_flashed_messages() %}
+				{% if messages %}
+					<ul class="flashes">
+						{% for message in messages %}
+						<li> {{ message }}</li>
+						{% endfor %}
+					</ul>
+				{% endif %}
+			{% endwith %}
+			{% with user = get_user() %}
+				{% if user %}
+					{% if not user.emailverified %}
+					<div class="email-verify">
+						<h3>{{ _('Please verify your email') }}</h3>
+						<p>{{ _('If you did not receive a verification e-mail, you can request a new one here: ') }}</p>
+						<a href="{{ url_for('resend_email') }}">{{ _('Resend verification e-mail') }}</a>
+						<p>{{ _('Note that this will invalidate any previously sent verification e-mails') }}</p>
+					</div>
+					{% endif %}
+				{% endif %}
+			{% endwith %}
+			</div>
+			{% block content %}{% endblock %}
+			<div id="push"></div>
+		</div>
+		<div id="footer">
+			<div class="container">
+				<p>&copy; 2015 by Andreas Holmgren. All rights reserved.</p>
+			</div>
+		</div>
+		<script src="{{ url_for('static', filename='js/jquery-2.1.4.min.js') }}"></script>
+		<script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+		<script type="text/javascript">
+			$(document).ready(function(){
+				$(".lang").click(function(){
+					$.get("/l", {"l": this.name}, function(data) { location.reload() });
+				});
+			});
+		</script>
+		{% block script %}{% endblock %}
+	</body>
+</html>
